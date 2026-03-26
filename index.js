@@ -6,8 +6,8 @@ const PORT = process.env.PORT || 5000;
 
 // --- CONFIGURATION (CLIENT) ---
 const CREDENTIALS = {
-    username: "Kami520",
-    password: "Kami526"
+    username: "Opxali_Z107",
+    password: "Opxali_Z107"
 };
 
 const BASE_URL = "http://51.89.99.105/NumberPanel";
