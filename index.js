@@ -82,12 +82,30 @@ async function performLogin() {
         // Get sesskey
         const r3 = await axios.get(STATS_PAGE_URL, { headers:{ ...COMMON_HEADERS, "Cookie": STATE.cookie, "Referer": `${BASE_URL}/client/SMSDashboard` } });
         const key = extractKey(r3.data);
-        if (key) STATE.sessKey = key;
-
-        console.log("✅ Login success. SessKey:", STATE.sessKey);
+        
+        if (key) {
+            STATE.sessKey = key;
+            console.log("✅ Login success. SessKey:", STATE.sessKey);
+        } else {
+            // SESSKEY NAHI MILI: Poora raw data print کرے گا اور لاگ ان فیل مانے گا
+            console.error("❌ Login failed: 'sesskey' nahi mili response mein!");
+            console.error("👇============== RAW RESPONSE START ==============👇");
+            console.error(typeof r3.data === 'object' ? JSON.stringify(r3.data, null, 2) : r3.data);
+            console.error("👆============== RAW RESPONSE END ==============👆");
+            
+            // State reset kar dein taake false login save na ho
+            STATE.cookie = null;
+            STATE.sessKey = null;
+        }
 
     } catch(e) {
-        console.error("❌ Login failed:", e.message);
+        console.error("❌ Login failed due to error:", e.message);
+        // Error ki soorat mein raw data print karega
+        if (e.response && e.response.data) {
+            console.error("👇============== RAW ERROR DATA ==============👇");
+            console.error(typeof e.response.data === 'object' ? JSON.stringify(e.response.data, null, 2) : e.response.data);
+            console.error("👆============== RAW ERROR END ==============👆");
+        }
     } finally {
         STATE.isLoggingIn = false;
     }
@@ -101,7 +119,7 @@ app.get('/api', async (req,res)=>{
     const { type } = req.query;
     if (!STATE.cookie || !STATE.sessKey) {
         await performLogin();
-        if (!STATE.sessKey) return res.status(500).json({ error:"Waiting for login..." });
+        if (!STATE.sessKey) return res.status(500).json({ error:"Waiting for login... (Or login failed, check console)" });
     }
 
     const ts = Date.now();
